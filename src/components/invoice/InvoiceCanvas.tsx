@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { InvoiceElement, InvoiceData } from "@/types";
 import { getElementStyle, bindFieldVariable } from "@/lib/utils";
@@ -27,10 +28,34 @@ const InvoiceCanvas: React.FC<InvoiceCanvasProps> = ({
 }) => {
   const [activeResizer, setActiveResizer] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const elementRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const startPosRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  const [canvasBounds, setCanvasBounds] = useState({ left: 0, top: 0, width: 0, height: 0 });
 
   // Get dimensions from selected paper size
   const { width, height } = PAPER_SIZES[paperSize] || PAPER_SIZES.A4;
+
+  // Update canvas bounds when canvas or window size changes
+  useEffect(() => {
+    const updateCanvasBounds = () => {
+      if (canvasRef.current) {
+        const bounds = canvasRef.current.getBoundingClientRect();
+        setCanvasBounds({
+          left: bounds.left,
+          top: bounds.top,
+          width: bounds.width,
+          height: bounds.height
+        });
+      }
+    };
+
+    updateCanvasBounds();
+    window.addEventListener('resize', updateCanvasBounds);
+    
+    return () => {
+      window.removeEventListener('resize', updateCanvasBounds);
+    };
+  }, [paperSize]);
 
   const handleElementClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -127,33 +152,50 @@ const InvoiceCanvas: React.FC<InvoiceCanvasProps> = ({
     }
   };
 
+  // Helper to get element initial x/y position for drag constraints
+  const getElementInitialPosition = (element: InvoiceElement) => {
+    return {
+      x: element.position.x,
+      y: element.position.y
+    };
+  };
+
+  // Custom drag handler to ensure precise positioning
+  const handleDragEnd = (e: MouseEvent, info: any, element: InvoiceElement) => {
+    if (!canvasRef.current) return;
+
+    // Calculate new position relative to canvas
+    const newX = Math.max(0, Math.min(info.point.x - canvasBounds.left, canvasBounds.width - (element.position.width || 0)));
+    const newY = Math.max(0, Math.min(info.point.y - canvasBounds.top, canvasBounds.height - (element.position.height || 0)));
+    
+    onElementMove(element.id, newX, newY);
+  };
+
   return (
     <div
       ref={canvasRef}
       className="invoice-canvas relative bg-white border rounded-md shadow-sm overflow-hidden"
-      style={{ width: `${width}px`, height: `${height}px` }} // A4 size at 96dpi
+      style={{ width: `${width}px`, height: `${height}px` }} 
       onClick={handleCanvasClick}
     >
       {elements.map((element) => (
         <motion.div
           key={element.id}
-          className={`invoice-element ${selectedElementId === element.id ? 'selected' : ''} ${isPreview ? 'pointer-events-none' : ''}`}
+          className={`invoice-element absolute ${selectedElementId === element.id ? 'selected' : ''} ${isPreview ? 'pointer-events-none' : ''}`}
           style={getElementStyle(element)}
+          ref={(el) => {
+            if (el) elementRefs.current.set(element.id, el);
+          }}
+          initial={false}
           drag={!isPreview}
+          dragConstraints={canvasRef}
           dragMomentum={false}
+          dragElastic={0}
           onDragStart={(e) => {
             e.stopPropagation();
             onSelectElement(element.id);
           }}
-          onDrag={(e, info) => {
-            const canvasBounds = canvasRef.current?.getBoundingClientRect();
-            if (!canvasBounds) return;
-
-            const x = Math.max(0, Math.min(info.point.x - canvasBounds.left, canvasBounds.width - (element.position.width || 0)));
-            const y = Math.max(0, Math.min(info.point.y - canvasBounds.top, canvasBounds.height - (element.position.height || 0)));
-            
-            onElementMove(element.id, x, y);
-          }}
+          onDragEnd={(e, info) => handleDragEnd(e as unknown as MouseEvent, info, element)}
           onClick={(e) => handleElementClick(e, element.id)}
         >
           {renderContent(element)}
@@ -162,19 +204,19 @@ const InvoiceCanvas: React.FC<InvoiceCanvasProps> = ({
           {!isPreview && selectedElementId === element.id && (
             <>
               <div
-                className="element-control-handle resize-handle-nw"
+                className="element-control-handle resize-handle-nw absolute top-0 left-0 w-4 h-4 bg-blue-500 rounded-full -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize"
                 onMouseDown={(e) => handleResizeStart(e, element.id, "nw")}
               />
               <div
-                className="element-control-handle resize-handle-ne"
+                className="element-control-handle resize-handle-ne absolute top-0 right-0 w-4 h-4 bg-blue-500 rounded-full translate-x-1/2 -translate-y-1/2 cursor-nesw-resize"
                 onMouseDown={(e) => handleResizeStart(e, element.id, "ne")}
               />
               <div
-                className="element-control-handle resize-handle-sw"
+                className="element-control-handle resize-handle-sw absolute bottom-0 left-0 w-4 h-4 bg-blue-500 rounded-full -translate-x-1/2 translate-y-1/2 cursor-nesw-resize"
                 onMouseDown={(e) => handleResizeStart(e, element.id, "sw")}
               />
               <div
-                className="element-control-handle resize-handle-se"
+                className="element-control-handle resize-handle-se absolute bottom-0 right-0 w-4 h-4 bg-blue-500 rounded-full translate-x-1/2 translate-y-1/2 cursor-nwse-resize"
                 onMouseDown={(e) => handleResizeStart(e, element.id, "se")}
               />
             </>
