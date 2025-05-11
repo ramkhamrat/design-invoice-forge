@@ -1,13 +1,12 @@
 
 import React from "react";
 import { InvoiceData } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { calculateTotals } from "@/lib/utils";
 import { isItemsField, isNestedField } from "@/lib/invoice-utils";
+import InvoiceTab from "./data-panel/InvoiceTab";
+import CompanyTab from "./data-panel/CompanyTab";
+import CustomerTab from "./data-panel/CustomerTab";
 
 interface DataPanelProps {
   data: InvoiceData;
@@ -109,232 +108,27 @@ const DataPanel: React.FC<DataPanelProps> = ({ data, onDataChange }) => {
           <TabsTrigger value="customer">Customer</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="invoice" className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="invoiceNumber">Invoice Number</Label>
-              <Input
-                id="invoiceNumber"
-                value={data.invoiceNumber}
-                onChange={(e) => handleChange("invoiceNumber", "", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={data.title}
-                onChange={(e) => handleChange("title", "", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={data.date}
-                onChange={(e) => handleChange("date", "", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="dueDate">Due Date</Label>
-              <Input
-                id="dueDate"
-                type="date"
-                value={data.dueDate}
-                onChange={(e) => handleChange("dueDate", "", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between mb-2">
-              <Label>Items</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addItem}
-              >
-                Add Item
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              {data.items.map((item, index) => (
-                <div key={index} className="border p-3 rounded-md relative">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-2 right-2 h-6 w-6 p-0"
-                    onClick={() => removeItem(index)}
-                  >
-                    ×
-                  </Button>
-                  
-                  <div className="space-y-2">
-                    <div className="space-y-1">
-                      <Label htmlFor={`item-${index}-desc`}>Description</Label>
-                      <Input
-                        id={`item-${index}-desc`}
-                        value={item.description}
-                        onChange={(e) => 
-                          handleChange("items", `${index}.description`, e.target.value)
-                        }
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="space-y-1">
-                        <Label htmlFor={`item-${index}-qty`}>Quantity</Label>
-                        <Input
-                          id={`item-${index}-qty`}
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => 
-                            handleChange("items", `${index}.quantity`, e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor={`item-${index}-price`}>Price</Label>
-                        <Input
-                          id={`item-${index}-price`}
-                          type="number"
-                          value={item.price}
-                          onChange={(e) => 
-                            handleChange("items", `${index}.price`, e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor={`item-${index}-amount`}>Amount</Label>
-                        <Input
-                          id={`item-${index}-amount`}
-                          type="number"
-                          value={item.amount}
-                          readOnly
-                          className="bg-gray-50"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={data.notes || ""}
-                onChange={(e) => handleChange("notes", "", e.target.value)}
-                rows={2}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="terms">Terms</Label>
-              <Textarea
-                id="terms"
-                value={data.terms || ""}
-                onChange={(e) => handleChange("terms", "", e.target.value)}
-                rows={2}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2 pt-4 border-t">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>${data.subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tax (10%):</span>
-              <span>${data.tax.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between font-bold">
-              <span>Total:</span>
-              <span>${data.total.toFixed(2)}</span>
-            </div>
-          </div>
+        <TabsContent value="invoice">
+          <InvoiceTab 
+            data={data} 
+            onDataChange={handleChange}
+            onAddItem={addItem}
+            onRemoveItem={removeItem}
+          />
         </TabsContent>
 
-        <TabsContent value="company" className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="company-name">Company Name</Label>
-            <Input
-              id="company-name"
-              value={data.company.name}
-              onChange={(e) => handleChange("company", "name", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="company-email">Email</Label>
-            <Input
-              id="company-email"
-              type="email"
-              value={data.company.email}
-              onChange={(e) => handleChange("company", "email", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="company-address">Address</Label>
-            <Textarea
-              id="company-address"
-              value={data.company.address}
-              onChange={(e) => handleChange("company", "address", e.target.value)}
-              rows={3}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="company-phone">Phone</Label>
-            <Input
-              id="company-phone"
-              value={data.company.phone || ""}
-              onChange={(e) => handleChange("company", "phone", e.target.value)}
-            />
-          </div>
+        <TabsContent value="company">
+          <CompanyTab 
+            company={data.company} 
+            onDataChange={handleChange} 
+          />
         </TabsContent>
 
-        <TabsContent value="customer" className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="customer-name">Customer Name</Label>
-            <Input
-              id="customer-name"
-              value={data.customer.name}
-              onChange={(e) => handleChange("customer", "name", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="customer-email">Email</Label>
-            <Input
-              id="customer-email"
-              type="email"
-              value={data.customer.email}
-              onChange={(e) => handleChange("customer", "email", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="customer-address">Address</Label>
-            <Textarea
-              id="customer-address"
-              value={data.customer.address}
-              onChange={(e) => handleChange("customer", "address", e.target.value)}
-              rows={3}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="customer-phone">Phone</Label>
-            <Input
-              id="customer-phone"
-              value={data.customer.phone || ""}
-              onChange={(e) => handleChange("customer", "phone", e.target.value)}
-            />
-          </div>
+        <TabsContent value="customer">
+          <CustomerTab 
+            customer={data.customer} 
+            onDataChange={handleChange} 
+          />
         </TabsContent>
       </Tabs>
     </div>
