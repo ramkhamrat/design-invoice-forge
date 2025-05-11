@@ -49,10 +49,13 @@ const DataPanel: React.FC<DataPanelProps> = ({ data, onDataChange }) => {
         });
       }
     } else if (isNestedField(section)) {
+      // Explicitly type this as an object before spreading
+      const nestedObject = data[section] as Record<string, any>;
+      
       onDataChange({
         ...data,
         [section]: {
-          ...data[section],
+          ...nestedObject,
           [field]: value,
         },
       });
