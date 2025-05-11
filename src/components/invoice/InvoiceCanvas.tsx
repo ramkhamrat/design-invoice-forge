@@ -1,8 +1,8 @@
-
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { InvoiceElement, InvoiceData } from "@/types";
 import { getElementStyle, bindFieldVariable } from "@/lib/utils";
+import { PAPER_SIZES, PaperSizeKey } from "@/lib/invoice-utils";
 
 interface InvoiceCanvasProps {
   elements: InvoiceElement[];
@@ -12,6 +12,7 @@ interface InvoiceCanvasProps {
   onElementMove: (id: string, x: number, y: number) => void;
   onElementResize: (id: string, width: number, height: number) => void;
   isPreview?: boolean;
+  paperSize?: PaperSizeKey;
 }
 
 const InvoiceCanvas: React.FC<InvoiceCanvasProps> = ({
@@ -22,10 +23,14 @@ const InvoiceCanvas: React.FC<InvoiceCanvasProps> = ({
   onElementMove,
   onElementResize,
   isPreview = false,
+  paperSize = "A4",
 }) => {
   const [activeResizer, setActiveResizer] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const startPosRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
+
+  // Get dimensions from selected paper size
+  const { width, height } = PAPER_SIZES[paperSize] || PAPER_SIZES.A4;
 
   const handleElementClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -126,7 +131,7 @@ const InvoiceCanvas: React.FC<InvoiceCanvasProps> = ({
     <div
       ref={canvasRef}
       className="invoice-canvas relative bg-white border rounded-md shadow-sm overflow-hidden"
-      style={{ width: "794px", height: "1123px" }} // A4 size at 96dpi
+      style={{ width: `${width}px`, height: `${height}px` }} // A4 size at 96dpi
       onClick={handleCanvasClick}
     >
       {elements.map((element) => (

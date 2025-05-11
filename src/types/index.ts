@@ -68,6 +68,7 @@ export interface Invoice {
   name: string;
   elements: InvoiceElement[];
   data: InvoiceData;
+  paperSize?: 'A4' | 'A5' | 'SLIP';
   createdAt?: string;
   updatedAt?: string;
 }

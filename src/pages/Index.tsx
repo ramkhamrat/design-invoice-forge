@@ -5,13 +5,16 @@ import InvoiceCanvas from "@/components/invoice/InvoiceCanvas";
 import ToolbarPanel from "@/components/invoice/ToolbarPanel";
 import ElementEditor from "@/components/invoice/ElementEditor";
 import DataPanel from "@/components/invoice/DataPanel";
+import PaperSizeSelector from "@/components/invoice/PaperSizeSelector";
 import { invoiceApi } from "@/services/api";
 import { toast } from "sonner";
+import { PaperSizeKey } from "@/lib/invoice-utils";
 
 // Default invoice data
 const defaultInvoice: Invoice = {
   name: "New Invoice",
   elements: [],
+  paperSize: "A4",
   data: {
     title: "Invoice",
     customer: {
@@ -88,6 +91,13 @@ const Index = () => {
   const selectedElement = invoice.elements.find(
     (el) => el.id === selectedElementId
   );
+
+  const handlePaperSizeChange = (size: PaperSizeKey) => {
+    setInvoice((prev) => ({
+      ...prev,
+      paperSize: size,
+    }));
+  };
 
   const handleAddElement = (element: InvoiceElement) => {
     setInvoice((prev) => ({
@@ -228,6 +238,14 @@ const Index = () => {
               Preview
             </button>
           </div>
+          
+          {/* Add paper size selector */}
+          <div className="ml-6">
+            <PaperSizeSelector 
+              currentSize={invoice.paperSize as PaperSizeKey || "A4"} 
+              onChange={handlePaperSizeChange} 
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
@@ -290,6 +308,7 @@ const Index = () => {
               onElementMove={handleElementMove}
               onElementResize={handleElementResize}
               isPreview={isPreviewMode}
+              paperSize={invoice.paperSize as PaperSizeKey || "A4"}
             />
           </div>
         </div>
