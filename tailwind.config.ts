@@ -56,6 +56,9 @@ const config = {
         },
         invoice: {
           'bg-light': "#f1f0fb", // Light background for invoice elements
+          'accent': "#9b87f5",   // Primary accent color for invoice elements
+          'accent-hover': "#8B5CF6", // Darker accent color for hover states
+          'text-dark': "#1A1F2C", // Dark text color for invoice
         }
       },
       borderRadius: {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Invoice, InvoiceElement, InvoiceData } from "@/types";
@@ -7,7 +6,7 @@ import ToolbarPanel from "@/components/invoice/ToolbarPanel";
 import ElementEditor from "@/components/invoice/ElementEditor";
 import DataPanel from "@/components/invoice/DataPanel";
 import { invoiceApi } from "@/services/api";
-import { useToast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 // Default invoice data
 const defaultInvoice: Invoice = {
@@ -58,7 +57,6 @@ const Index = () => {
   const [isElementEditorOpen, setIsElementEditorOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const toast = useToast();
 
   useEffect(() => {
     // Load demo invoice
@@ -168,6 +166,7 @@ const Index = () => {
         const newInvoice = await invoiceApi.createInvoice(invoice);
         setInvoice(newInvoice);
       }
+      toast.success("Invoice saved successfully");
     } catch (error) {
       console.error("Failed to save invoice:", error);
       toast.error("Failed to save invoice");
