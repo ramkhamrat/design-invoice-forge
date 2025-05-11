@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { calculateTotals } from "@/lib/utils";
+import { isItemsField, isNestedField } from "@/lib/invoice-utils";
 
 interface DataPanelProps {
   data: InvoiceData;
@@ -19,7 +20,7 @@ const DataPanel: React.FC<DataPanelProps> = ({ data, onDataChange }) => {
     field: string,
     value: string | number
   ) => {
-    if (section === "items") {
+    if (isItemsField(section)) {
       const updatedItems = [...data.items];
       const [index, itemField] = field.split(".");
       const itemIndex = parseInt(index);
@@ -47,7 +48,7 @@ const DataPanel: React.FC<DataPanelProps> = ({ data, onDataChange }) => {
           total,
         });
       }
-    } else if (typeof data[section] === "object" && section !== "items") {
+    } else if (isNestedField(section)) {
       onDataChange({
         ...data,
         [section]: {
