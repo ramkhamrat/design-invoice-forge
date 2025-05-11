@@ -304,7 +304,7 @@ const ElementEditor: React.FC<ElementEditorProps> = ({ element, onUpdate, onClos
           
           {element.fieldVariable && (
             <div className="p-3 rounded-md bg-invoice-bg-light text-sm">
-              <p>This element will display data from <code>{{'{{'}{element.fieldVariable}{{'}}'}} </code></p>
+              <p>This element will display data from <code>{"{{" + element.fieldVariable + "}}"}</code></p>
             </div>
           )}
         </TabsContent>
